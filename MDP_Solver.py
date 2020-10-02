@@ -1,4 +1,11 @@
-def stateValueFinder(matrix, actions, policy, discount, theta):
+# Daniel Goldstein
+# 20119615
+# CISC 474 Assignment 1
+
+# stateValueFinder(2dArray, Array, Float, Float, Float, Dictionary):
+# stateValueFinder finds the state values for each entry in the matrix passed to it
+# it does so based on the actions, policy, discount, theta and specialPositions provided
+def stateValueFinder(matrix, actions, policy, discount, theta, specialPositions):
     rowLen, colLen = len(matrix), len(matrix[0])
     while True:
         newMatrix, delta = [[0 for _ in range(colLen)] for _ in range(rowLen)], 0
@@ -6,31 +13,25 @@ def stateValueFinder(matrix, actions, policy, discount, theta):
             for j in range(colLen):
                 newStateValue = 0
                 for action in actions:
-                    rewardAndLocation = determineRewardAndSPrimeLocation(action, i, j, rowLen, colLen)
+                    rewardAndLocation = determineRewardAndSPrimeLocation(action, i, j, rowLen, colLen, specialPositions)
                     reward, sPrimeRow, sPrimeCol = rewardAndLocation[0], rewardAndLocation[1][0], rewardAndLocation[1][1]
-                    if (i, j) == (0, 1):
-                        sPrimeRow, sPrimeCol = 4, 1
-                    if (i, j) == (0, 3):
-                        sPrimeRow, sPrimeCol = 2, 3
+                    if (sPrimeRow, sPrimeCol) == specialPositions['A'][1]:
+                        print("OKAY ", sPrimeRow, sPrimeCol)
                     newStateValue += policy * 1 * (reward + discount * matrix[sPrimeRow][sPrimeCol])
                 newMatrix[i][j] = newStateValue
-                delta = max(delta, abs(abs(matrix[i][j]) - abs(newStateValue)))
+                delta = max(delta, abs(matrix[i][j] - newStateValue))
         matrix = newMatrix
         if delta <= theta:
-            print("Returned")
-            printMatrix(matrix)
-            return matrix
-    print("Not Returned")
-    printMatrix(matrix)
+            break
     return matrix
 
 
-def determineRewardAndSPrimeLocation(action, row, col, rowLen, colLen):
+def determineRewardAndSPrimeLocation(action, row, col, rowLen, colLen, specialPositions):
     reward, location = 0, (row, col)
-    if (row, col) == (0, 1):
-        reward = 10
-    if (row, col) == (0, 3):
-        reward = 5
+    if (row, col) == specialPositions['A'][0]:
+        reward, location = 10, specialPositions['A'][1]
+    if (row, col) == specialPositions['B'][0]:
+        reward, location = 5, specialPositions['B'][1]
     if action == 'LEFT' and col > 0:
         location = (row, col - 1)
     if action == 'RIGHT' and col + 1 < colLen:
@@ -44,14 +45,49 @@ def determineRewardAndSPrimeLocation(action, row, col, rowLen, colLen):
     return reward, location
 
 
-def printMatrix(matrixToPrint):
+def printMatrix(matrixToPrint, roundMatrix=True):
     for row in matrixToPrint:
         for value in row:
-            print(round(value, 1), end=' ')
+            if roundMatrix:
+                print(round(value, 1), end=' ')
+            else:
+                print(value, end=' ')
         print()
 
 
-m = [[0 for j in range(5)] for i in range(5)]
-a = ['left'.upper(), 'right'.upper(), 'up'.upper(), 'down'.upper()]
-m0 = stateValueFinder(m, a, 0.25, 0.9, 0.000000000000000000001)
+def main():
+    actions = ['left'.upper(), 'right'.upper(), 'up'.upper(), 'down'.upper()]
+    policy, theta = 0.25, 0.00001
+    specialPositions5x5 = {'A': [(0, 1), (4, 1)], 'B': [(0, 3), (2, 3)]}
+    specialPositions7x7 = {'A': [(2, 1), (6, 1)], 'B': [(0, 5), (3, 5)]}
+    m0 = [[0 for _ in range(5)] for _ in range(5)]
+    m1 = [[0 for _ in range(7)] for _ in range(7)]
+   # m5x5_75 = stateValueFinder(m0, actions, policy, 0.75, theta, specialPositions5x5)
+   # m5x5_85 = stateValueFinder(m0, actions, policy, 0.85, theta, specialPositions5x5)
+    book = stateValueFinder(m0, actions, policy, 0.9, theta, specialPositions5x5)
+   # m7x7_75 = stateValueFinder(m1, actions, policy, 0.75, theta, specialPositions7x7)
+   # m7x7_85 = stateValueFinder(m1, actions, policy, 0.85, theta, specialPositions7x7)
 
+    print("State Value For 5x5, Gamma 0.75, Rounded To 1 Decimal Place")
+   # printMatrix(m5x5_75)
+   # print("\nNot rounded")
+  #  printMatrix(m5x5_75, roundMatrix=False)
+    print("\nState Value For 5x5, Gamma 0.85, Rounded To 1 Decimal Place")
+   # printMatrix(m5x5_85)
+    #print("\nNot rounded")
+   # printMatrix(m5x5_85, roundMatrix=False)
+    print("\nState Value For 7x7, Gamma 0.75, Rounded To 1 Decimal Place")
+   # printMatrix(m7x7_75)
+  #  print("\nNot rounded")
+  #  printMatrix(m7x7_75, roundMatrix=False)
+    print("\nState Value For 7x7, Gamma 0.85, Rounded To 1 Decimal Place")
+   # printMatrix(m7x7_85)
+   # print("\nNot rounded")
+   # printMatrix(m7x7_85, roundMatrix=False)
+    print("book\n")
+    print(book)
+    printMatrix(book)
+
+
+if __name__ == "__main__":
+    main()
